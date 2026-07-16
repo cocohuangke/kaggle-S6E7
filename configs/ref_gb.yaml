@@ -1,0 +1,77 @@
+# ref_gb.yaml — Reference GB notebook replication (LB=0.95043)
+# LGBM(0.85) + XGB(0.15) soft voting
+# Matches run_ref_gb.py output exactly (DataFrame input, no eval_set, cat-first column order)
+#
+# Key: ordinal encoding + domain features + LGBM
+# Per-model FE: LGBM gets 26d (13 domain), XGB gets 22d (9 domain)
+
+name: ref_gb
+
+fe:
+  ref_gb_lgb:
+    ordinal_encode: true
+    domain_features: true
+    domain_features_variant: full   # 13 features for LGBM
+    col_order: cat_first             # NUM + cat + domain (matches reference notebook)
+    replace_inf: false               # Keep inf (LGBM handles natively, matches reference)
+    stress_pal: false
+    num2cat: false
+    te: false
+    num_te: false
+    num_fill: median
+  ref_gb_xgb:
+    ordinal_encode: true
+    domain_features: true
+    domain_features_variant: xgb   # 9 features for XGB
+    col_order: cat_first             # NUM + cat + domain (matches reference notebook)
+    replace_inf: false               # Keep inf (XGB with missing=.nan handles it)
+    stress_pal: false
+    num2cat: false
+    te: false
+    num_te: false
+    num_fill: median
+
+models:
+  - name: LGB
+    fe: ref_gb_lgb
+    model_type: LGB
+    n_splits: 5
+    params:
+      random_state: 42
+      verbose: -1
+      class_weight: balanced
+      n_estimators: 100
+      learning_rate: 0.1
+  - name: XGB
+    fe: ref_gb_xgb
+    model_type: XGB
+    n_splits: 5
+    params:
+      random_state: 42
+      tree_method: hist
+      device: cpu                  # Must be cpu to match reference notebook (no CUDA)
+      missing: .nan
+      n_jobs: -1
+      n_estimators: 100
+      learning_rate: 0.3
+      max_depth: 6
+      min_child_weight: 1
+      subsample: 1.0
+      colsample_bytree: 1.0
+      reg_alpha: 0.0
+      reg_lambda: 1.0
+      gamma: 0.0
+      early_stopping_rounds: null
+      use_eval_set: false            # Match reference notebook (no eval_set)
+
+blend:
+  name: ref_gb
+  components:
+    - name: LGB_XGB
+      models:
+        - LGB
+        - XGB
+      inner: weighted
+      weights:
+        LGB: 0.85
+        XGB: 0.15

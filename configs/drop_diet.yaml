@@ -1,0 +1,30 @@
+# drop_diet.yaml — 13d minus diet_type = 12d
+name: drop_diet
+
+fe:
+  no_diet:
+    num2cat: false
+    stress_pal: false
+    num_fill: median
+    te: false
+    drop_features: [diet_type]
+
+models:
+  - name: XGB
+    fe: no_diet
+    n_splits: 5
+
+  - name: CB
+    fe: no_diet
+    n_splits: 5
+
+  - name: HGB
+    fe: no_diet
+    n_splits: 5
+
+blend:
+  components:
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 1.0

@@ -1,0 +1,30 @@
+# drop_step.yaml — 13d minus step_count = 12d
+name: drop_step
+
+fe:
+  no_step:
+    num2cat: false
+    stress_pal: false
+    num_fill: median
+    te: false
+    drop_features: [step_count]
+
+models:
+  - name: XGB
+    fe: no_step
+    n_splits: 5
+
+  - name: CB
+    fe: no_step
+    n_splits: 5
+
+  - name: HGB
+    fe: no_step
+    n_splits: 5
+
+blend:
+  components:
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 1.0

@@ -1,0 +1,26 @@
+# drop4_9d.yaml — 13d minus 4 features (heart_rate, calorie_expenditure, gender, diet_type) = 9d
+name: drop4_9d
+
+fe:
+  core9:
+    num2cat: false
+    stress_pal: false
+    num_fill: median
+    te: false
+    drop_features: [heart_rate, calorie_expenditure, gender, diet_type]
+
+models:
+  - name: XGB
+    fe: core9
+    n_splits: 5
+
+  - name: CB
+    fe: core9
+    n_splits: 5
+
+blend:
+  components:
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 1.0

@@ -1,0 +1,56 @@
+# Data
+data/*.csv
+data/*.parquet
+!data/sample_submission.csv
+
+# OOF predictions (large numpy arrays)
+oof/*.npy
+
+# Submissions (large CSVs)
+submissions/*.csv
+
+# Cache
+cache/
+catboost_info/
+
+# AutoGluon output (large)
+autogluon_output/
+
+# Output
+output/
+*.log
+
+# Notebooks (large)
+notebook/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+*.egg
+build/
+dist/
+
+# Virtual envs
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Compare outputs (generated)
+compare_outputs/

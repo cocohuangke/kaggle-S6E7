@@ -1,0 +1,30 @@
+# drop_gender.yaml — 13d minus gender = 12d
+name: drop_gender
+
+fe:
+  no_gender:
+    num2cat: false
+    stress_pal: false
+    num_fill: median
+    te: false
+    drop_features: [gender]
+
+models:
+  - name: XGB
+    fe: no_gender
+    n_splits: 5
+
+  - name: CB
+    fe: no_gender
+    n_splits: 5
+
+  - name: HGB
+    fe: no_gender
+    n_splits: 5
+
+blend:
+  components:
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 1.0

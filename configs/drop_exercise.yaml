@@ -1,0 +1,30 @@
+# drop_exercise.yaml — 13d minus exercise_duration = 12d
+name: drop_exercise
+
+fe:
+  no_exercise:
+    num2cat: false
+    stress_pal: false
+    num_fill: median
+    te: false
+    drop_features: [exercise_duration]
+
+models:
+  - name: XGB
+    fe: no_exercise
+    n_splits: 5
+
+  - name: CB
+    fe: no_exercise
+    n_splits: 5
+
+  - name: HGB
+    fe: no_exercise
+    n_splits: 5
+
+blend:
+  components:
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 1.0

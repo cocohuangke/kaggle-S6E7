@@ -1,0 +1,187 @@
+# champion_v1_full.yaml — Full training version of champion_v1 (LB=0.95083)
+# Trains ALL models from scratch (no legacy_oof). Takes ~60 min.
+# For fast reproduction with pre-computed OOF, use champion_v1.yaml instead.
+#
+# OOF may differ slightly from champion_v1 due to fold randomness,
+# but final LB should be within 0.0001 of 0.95083.
+
+name: champion_v1_full
+
+fe:
+  A_num2cat_numte:
+    num2cat: true
+    stress_pal: true
+    num_fill: median
+    te: false
+    num_te: true
+    te_folds: 7
+
+models:
+  # RM_ref: Reference RealMLP (epochs=3, seed=63, GP features)
+  # Note: RealMLP uses its own FE pipeline (realmlp_fe), fe field is for pipeline compat only
+  - name: RM_ref
+    model_type: RealMLP
+    fe: A_num2cat_numte
+    n_splits: 7
+    fe_config:
+      stress_pal: false
+      gp_features: true
+      te: true
+    params:
+      n_ens: 8
+      hidden_dims: [512, 512, 512]
+      dropout: 0.06
+      epochs: 3
+      flat_ratio: 0.3
+      random_state: 63
+      lr: 0.01
+      mom: 0.9
+      sq_mom: 0.98
+      weight_decay: 0.013
+      ema_decay: 0.997875
+      grad_clip: 1.2
+      ls_eps: 0.04
+      ls_eps_sched: cos
+      p_drop_sched: expm4t
+      embed_dim: 8
+      onehot_thresh: 8
+      activation: SiLU
+      add_front_scale: true
+      pbld_hidden_dim: 20
+      pbld_out_dim: 5
+      pbld_freq_scale: 5.0
+      pbld_activation: PReLU
+      pbld_lr_factor: 0.093
+      first_layer_lr_factor: 1.0
+      first_layer_wd_factor: 0.1
+      lr_scale_mult: 10.0
+      lr_bias_mult: 0.1
+      wd_scale_mult: 0.1
+      wd_bias_mult: 0.5
+      tfms: [median_center, robust_scale]
+      train_bs: 256
+      eval_bs: 10240
+      use_early_stopping: false
+
+  # XGB: base features only (no TE columns) — 17d
+  - name: XGB
+    fe: A_num2cat_numte
+    feature_subset: base
+    n_splits: 7
+    params:
+      n_estimators: 1500
+      learning_rate: 0.05
+      max_depth: 7
+      min_child_weight: 50
+      subsample: 0.8
+      colsample_bytree: 0.8
+      reg_alpha: 0.1
+      reg_lambda: 1.0
+      tree_method: hist
+      device: cuda
+      random_state: 42
+      verbosity: 0
+      early_stopping_rounds: 50
+
+  # CatBoost: full features (with num TE) — 38d
+  - name: CB
+    fe: A_num2cat_numte
+    feature_subset: all
+    n_splits: 7
+    params:
+      iterations: 1500
+      learning_rate: 0.05
+      depth: 5
+      l2_leaf_reg: 1.0
+      auto_class_weights: Balanced
+      task_type: GPU
+      random_seed: 42
+      verbose: 0
+      early_stopping_rounds: 100
+
+  # HistGB: full features (with num TE) — 38d
+  - name: HGB
+    fe: A_num2cat_numte
+    feature_subset: all
+    n_splits: 7
+    params:
+      max_iter: 1000
+      learning_rate: 0.05
+      max_depth: 8
+      min_samples_leaf: 50
+      l2_regularization: 1.0
+      max_leaf_nodes: 31
+      class_weight: balanced
+      random_state: 42
+      verbose: 0
+      early_stopping: true
+      n_iter_no_change: 50
+      validation_fraction: 0.1
+
+  # RM_old: Plain RealMLP (epochs=2, seed=42, no GP features)
+  # Note: RealMLP uses its own FE pipeline (realmlp_fe), fe field is for pipeline compat only
+  - name: RM_old
+    model_type: RealMLP
+    fe: A_num2cat_numte
+    n_splits: 7
+    fe_config:
+      stress_pal: false
+      gp_features: false
+      extra_cat_features: false
+      water_intake_round: false
+      sleep_cat: false
+      te: true
+    params:
+      n_ens: 8
+      hidden_dims: [512, 512, 512]
+      dropout: 0.06
+      epochs: 2
+      flat_ratio: 0.3
+      random_state: 42
+      lr: 0.01
+      mom: 0.9
+      sq_mom: 0.98
+      weight_decay: 0.013
+      ema_decay: 0.997875
+      grad_clip: 1.2
+      ls_eps: 0.04
+      ls_eps_sched: cos
+      p_drop_sched: expm4t
+      embed_dim: 8
+      onehot_thresh: 8
+      activation: SiLU
+      add_front_scale: true
+      pbld_hidden_dim: 20
+      pbld_out_dim: 5
+      pbld_freq_scale: 5.0
+      pbld_activation: PReLU
+      pbld_lr_factor: 0.093
+      first_layer_lr_factor: 1.0
+      first_layer_wd_factor: 0.1
+      lr_scale_mult: 10.0
+      lr_bias_mult: 0.1
+      wd_scale_mult: 0.1
+      wd_bias_mult: 0.5
+      tfms: [median_center, robust_scale]
+      train_bs: 256
+      eval_bs: 10240
+      use_early_stopping: false
+
+blend:
+  components:
+    - name: RM_ref
+      models: [RM_ref]
+      inner: single
+
+    - name: GB_4way
+      models: [XGB, CB, HGB, RM_old]
+      inner: weighted
+      weights:
+        XGB: 0.02
+        CB: 0.06
+        HGB: 0.42
+        RM_old: 0.50
+
+  per_class_weights:
+    RM_ref: [0.60, 0.32, 0.60]
+    GB_4way: [0.40, 0.68, 0.40]

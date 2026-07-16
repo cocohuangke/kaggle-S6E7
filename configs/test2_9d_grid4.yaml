@@ -1,0 +1,34 @@
+# test2_9d_grid4.yaml — 9d 4-model individual grid search
+# RealMLP + XGB + CB + HGB, each with independently optimized weight
+name: test2_9d_grid4
+
+fe:
+  A_num2cat_9d:
+    num2cat: true
+    stress_pal: true
+    num_fill: median
+    te: false
+    drop_features: [heart_rate, calorie_expenditure, gender, diet_type]
+
+models:
+  - name: XGB
+    fe: A_num2cat_9d
+    n_splits: 5
+
+  - name: CB
+    fe: A_num2cat_9d
+    n_splits: 5
+
+  - name: HGB
+    fe: A_num2cat_9d
+    n_splits: 5
+
+  - name: RealMLP
+    fe: A_num2cat_9d
+    n_splits: 7
+    legacy_oof: _realmlp_9d_ens12
+
+blend:
+  method: individual_grid
+  models: [RealMLP, XGB, CB, HGB]
+  grid_step: 2

@@ -1,0 +1,42 @@
+# v2_sleepcat.yaml — Test sleep_cat alone: 13d base + 1 sleep_cat = 14d
+# Hypothesis: sleep duration threshold at 6 and 7 are hard boundaries from EDA
+# Baseline: A_num2cat 17d, GB_A OOF BA=0.95060
+
+name: v2_sleepcat
+
+fe:
+  sleepcat_only:
+    num2cat: false
+    stress_pal: false
+    sleep_cat: true
+    num_fill: median
+    te: false
+
+models:
+  - name: XGB
+    fe: sleepcat_only
+    n_splits: 5
+
+  - name: CB
+    fe: sleepcat_only
+    n_splits: 5
+
+  - name: HGB
+    fe: sleepcat_only
+    n_splits: 5
+
+  - name: RealMLP
+    fe: sleepcat_only
+    n_splits: 7
+    legacy_oof: _realmlp
+
+blend:
+  components:
+    - name: RM
+      models: [RealMLP]
+      weight: 0.55
+
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 0.45

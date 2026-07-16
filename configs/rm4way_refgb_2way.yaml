@@ -1,0 +1,65 @@
+# rm4way_refgb_2way.yaml — Champion blend + RefGB ensemble 2-way blend
+#
+# A: Champion blend = RM_ref*[0.60,0.32,0.60] + GB_4way*[0.40,0.68,0.40]
+#    (OOF=0.95086, LB=0.95083)
+# B: RefGB ensemble = LGBM(0.85) + XGB(0.15), ordinal+domain features
+#    (OOF=0.94981)
+#
+# Per-class weight search result: champ=[1.0, 1.0, 1.0], refgb=[0, 0, 0]
+# → Adding RefGB ALWAYS decreases OOF BA from 0.95086
+# → RefGB is too weak (0.94981) to provide useful diversity
+#
+# This config is kept for documentation. Actual best remains champion_v1.
+
+name: rm4way_refgb_2way
+
+models:
+  - name: RM_ref
+    legacy_oof: _realmlp_ref
+    n_splits: 7
+
+  - name: XGB
+    legacy_oof: _fe_A_num2cat_numte_XGB
+    n_splits: 5
+
+  - name: CB
+    legacy_oof: _fe_A_num2cat_numte_CB
+    n_splits: 5
+
+  - name: HGB
+    legacy_oof: _fe_A_num2cat_numte_HGB
+    n_splits: 5
+
+  - name: RM_old
+    legacy_oof: _realmlp
+    n_splits: 7
+
+  - name: RefGB
+    legacy_oof: _ref_gb_ens
+    n_splits: 5
+
+blend:
+  components:
+    - name: Champion
+      models: [RM_ref, XGB, CB, HGB, RM_old]
+      inner: weighted
+      weights:
+        # Champion per-class: RM_ref=[0.60,0.32,0.60], GB_4way=[0.40,0.68,0.40]
+        # GB_4way inner: XGB=0.02, CB=0.06, HGB=0.42, RM_old=0.50
+        # Since inner=weighted is uniform across classes, we approximate:
+        # Use RM_ref weight ~0.57 and GB_4way ~0.43 (uniform best)
+        RM_ref: 0.57
+        XGB: 0.0086   # 0.43 * 0.02
+        CB: 0.0258     # 0.43 * 0.06
+        HGB: 0.1806    # 0.43 * 0.42
+        RM_old: 0.215  # 0.43 * 0.50
+
+    - name: RefGB
+      models: [RefGB]
+      inner: single
+
+  # Per-class weights [at-risk, fit, unhealthy]
+  # Best found: champ=1.0 for all classes (RefGB adds nothing)
+  per_class_weights:
+    Champion: [1.0, 1.0, 1.0]
+    RefGB: [0.0, 0.0, 0.0]

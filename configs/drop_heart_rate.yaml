@@ -1,0 +1,30 @@
+# drop_heart_rate.yaml — 13d minus heart_rate = 12d
+name: drop_heart_rate
+
+fe:
+  no_hr:
+    num2cat: false
+    stress_pal: false
+    num_fill: median
+    te: false
+    drop_features: [heart_rate]
+
+models:
+  - name: XGB
+    fe: no_hr
+    n_splits: 5
+
+  - name: CB
+    fe: no_hr
+    n_splits: 5
+
+  - name: HGB
+    fe: no_hr
+    n_splits: 5
+
+blend:
+  components:
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 1.0

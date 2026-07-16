@@ -1,0 +1,43 @@
+# gb_A.yaml — GB equal blend (XGB tuned + CB default + HGB default)
+# Features: A_num2cat (17d)
+name: gb_A
+
+fe:
+  A_num2cat:
+    num2cat: true
+    stress_pal: true
+    sleep_cat: false
+    num_fill: median
+    te: false
+
+models:
+  - name: XGB
+    fe: A_num2cat
+    n_splits: 5
+    params:
+      n_estimators: 700
+      learning_rate: 0.01968304660370243
+      max_depth: 4
+      min_child_weight: 23
+      subsample: 0.8482603786445442
+      colsample_bytree: 0.6127016595716311
+      reg_alpha: 0.013895490830421453
+      reg_lambda: 0.008111308307896872
+      tree_method: hist
+      device: cuda
+      random_state: 123
+      verbosity: 0
+      early_stopping_rounds: 50
+
+  - name: CB
+    fe: A_num2cat
+    n_splits: 5
+
+  - name: HGB
+    fe: A_num2cat
+    n_splits: 5
+
+blend:
+  method: individual_grid
+  models: [XGB, CB, HGB]
+  grid_step: 1

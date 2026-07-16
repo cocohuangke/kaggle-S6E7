@@ -1,0 +1,44 @@
+# best_v1.yaml — Reproduce best submission: sub_rm_gb_a_blend_noca.csv (LB=0.95065)
+# Blend: RM0.55 + GB_A(eq3: XGB+CB+HGB equal weight)0.45
+# Features: A_num2cat (7num + 6cat + stress_pal + 3num2cat = 17d, no TE)
+# RealMLP: yekenot 7-fold (legacy, uses existing OOF files)
+
+name: best_v1
+
+fe:
+  A_num2cat:
+    num2cat: true
+    stress_pal: true
+    sleep_cat: false
+    num_fill: median
+    te: false
+
+models:
+  - name: XGB
+    fe: A_num2cat
+    n_splits: 5
+    # Default params match _fe_incremental.py
+
+  - name: CB
+    fe: A_num2cat
+    n_splits: 5
+
+  - name: HGB
+    fe: A_num2cat
+    n_splits: 5
+
+  - name: RealMLP
+    fe: A_num2cat  # placeholder, not used (legacy_oof takes priority)
+    n_splits: 7
+    legacy_oof: _realmlp  # Use existing oof/_realmlp_oof.npy
+
+blend:
+  components:
+    - name: RM
+      models: [RealMLP]
+      weight: 0.55
+
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 0.45

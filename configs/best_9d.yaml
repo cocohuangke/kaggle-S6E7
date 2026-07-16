@@ -1,0 +1,43 @@
+# best_9d.yaml — 9d core features + A_num2cat (num2cat + stress_pal)
+# Drop: heart_rate, calorie_expenditure, gender, diet_type
+# Keep: sleep_duration, bmi, step_count, exercise_duration, water_intake + 6 cat
+# Add: calorie_cat_, water_cat2_, step_cat_ (num2cat) + stress_pal
+# Total: 5 num + 4 cat + 3 num2cat + 1 stress_pal = 13d
+name: best_9d
+
+fe:
+  A_num2cat_9d:
+    num2cat: true
+    stress_pal: true
+    num_fill: median
+    te: false
+    drop_features: [heart_rate, calorie_expenditure, gender, diet_type]
+
+models:
+  - name: XGB
+    fe: A_num2cat_9d
+    n_splits: 5
+
+  - name: CB
+    fe: A_num2cat_9d
+    n_splits: 5
+
+  - name: HGB
+    fe: A_num2cat_9d
+    n_splits: 5
+
+  - name: RealMLP
+    fe: A_num2cat_9d
+    n_splits: 7
+    legacy_oof: _realmlp
+
+blend:
+  components:
+    - name: RM
+      models: [RealMLP]
+      weight: 0.55
+
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 0.45

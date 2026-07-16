@@ -1,0 +1,31 @@
+# baseline_13d.yaml — 13d baseline (no num2cat, no stress_pal)
+# Pure 7 num + 6 cat = 13d, fill missing + label encode only
+name: baseline_13d
+
+fe:
+  base13:
+    num2cat: false
+    stress_pal: false
+    sleep_cat: false
+    num_fill: median
+    te: false
+
+models:
+  - name: XGB
+    fe: base13
+    n_splits: 5
+
+  - name: CB
+    fe: base13
+    n_splits: 5
+
+  - name: HGB
+    fe: base13
+    n_splits: 5
+
+blend:
+  components:
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 1.0

@@ -1,0 +1,56 @@
+# champion_v1.yaml — LB=0.95083 (best submission)
+# Per-class weights: RM_ref=[0.60, 0.32, 0.60], 4way=[0.40, 0.68, 0.40]
+# Components: RM_ref (OOF=0.95060) + 4way_numte_blend (OOF=0.95063)
+# 4way inner: XGB=0.02, CB=0.06, HGB=0.42, RM=0.50 (grid-searched)
+#
+# REPRODUCIBILITY:
+#   Fast (uses pre-computed OOF):  python run_v2.py configs/champion_v1.yaml
+#   Full training (no legacy_oof):  python run_v2.py configs/champion_v1_full.yaml
+#
+# Model origins:
+#   _realmlp_ref:     configs/realmlp_ref.yaml  (epochs=3, seed=63, GP features)
+#   _realmlp (plain): configs/realmlp_plain.yaml (epochs=2, seed=42, no GP)
+#   _fe_A_num2cat_numte_{XGB,CB,HGB}: configs/gbdt_numte.yaml (num TE, per-model features)
+name: champion_v1
+
+models:
+  - name: RM_ref
+    legacy_oof: _realmlp_ref
+    n_splits: 7
+
+  - name: XGB
+    legacy_oof: _fe_A_num2cat_numte_XGB
+    n_splits: 5
+
+  - name: CB
+    legacy_oof: _fe_A_num2cat_numte_CB
+    n_splits: 5
+
+  - name: HGB
+    legacy_oof: _fe_A_num2cat_numte_HGB
+    n_splits: 5
+
+  - name: RM_old
+    legacy_oof: _realmlp
+    n_splits: 7
+
+blend:
+  components:
+    - name: RM_ref
+      models: [RM_ref]
+      inner: single
+
+    - name: GB_4way
+      models: [XGB, CB, HGB, RM_old]
+      inner: weighted
+      weights:
+        XGB: 0.02
+        CB: 0.06
+        HGB: 0.42
+        RM_old: 0.50
+
+  # Per-class weights for final blend
+  # Each component gets a weight per class: [at-risk, fit, unhealthy]
+  per_class_weights:
+    RM_ref: [0.60, 0.32, 0.60]
+    GB_4way: [0.40, 0.68, 0.40]

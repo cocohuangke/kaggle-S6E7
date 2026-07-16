@@ -1,0 +1,30 @@
+# drop_calorie.yaml — 13d minus calorie_expenditure = 12d
+name: drop_calorie
+
+fe:
+  no_cal:
+    num2cat: false
+    stress_pal: false
+    num_fill: median
+    te: false
+    drop_features: [calorie_expenditure]
+
+models:
+  - name: XGB
+    fe: no_cal
+    n_splits: 5
+
+  - name: CB
+    fe: no_cal
+    n_splits: 5
+
+  - name: HGB
+    fe: no_cal
+    n_splits: 5
+
+blend:
+  components:
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 1.0

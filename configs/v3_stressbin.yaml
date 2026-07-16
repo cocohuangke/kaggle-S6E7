@@ -1,0 +1,42 @@
+# v3_stressbin.yaml — Test stress_bin on top of sleep_cat: 13d + 1sleep_cat + 2stress_bin = 16d
+# Baseline: sleepcat_only 14d, GB_A=0.94975, blend=0.95061
+
+name: v3_stressbin
+
+fe:
+  sleepcat_stressbin:
+    num2cat: false
+    stress_pal: false
+    sleep_cat: true
+    stress_bin: true
+    num_fill: median
+    te: false
+
+models:
+  - name: XGB
+    fe: sleepcat_stressbin
+    n_splits: 5
+
+  - name: CB
+    fe: sleepcat_stressbin
+    n_splits: 5
+
+  - name: HGB
+    fe: sleepcat_stressbin
+    n_splits: 5
+
+  - name: RealMLP
+    fe: sleepcat_stressbin
+    n_splits: 7
+    legacy_oof: _realmlp
+
+blend:
+  components:
+    - name: RM
+      models: [RealMLP]
+      weight: 0.55
+
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 0.45

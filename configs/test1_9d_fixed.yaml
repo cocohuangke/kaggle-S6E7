@@ -1,0 +1,40 @@
+# test1_9d_fixed.yaml — 9d RealMLP:0.55 + GB_A(equal):0.45
+# Fixed weights, same structure as best_v1 but with 9d features
+name: test1_9d_fixed
+
+fe:
+  A_num2cat_9d:
+    num2cat: true
+    stress_pal: true
+    num_fill: median
+    te: false
+    drop_features: [heart_rate, calorie_expenditure, gender, diet_type]
+
+models:
+  - name: XGB
+    fe: A_num2cat_9d
+    n_splits: 5
+
+  - name: CB
+    fe: A_num2cat_9d
+    n_splits: 5
+
+  - name: HGB
+    fe: A_num2cat_9d
+    n_splits: 5
+
+  - name: RealMLP
+    fe: A_num2cat_9d
+    n_splits: 7
+    legacy_oof: _realmlp_9d_ens12
+
+blend:
+  components:
+    - name: RM
+      models: [RealMLP]
+      weight: 0.55
+
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 0.45

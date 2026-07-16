@@ -1,0 +1,49 @@
+# gb_rm.yaml — RealMLP + tuned GB blend
+# RealMLP: yekenot 7-fold (legacy, oof/_realmlp_oof.npy)
+# GB: XGB tuned + CB default + HGB default, on A_num2cat 17d
+name: gb_rm
+
+fe:
+  A_num2cat:
+    num2cat: true
+    stress_pal: true
+    sleep_cat: false
+    num_fill: median
+    te: false
+
+models:
+  - name: XGB
+    fe: A_num2cat
+    n_splits: 5
+    params:
+      n_estimators: 700
+      learning_rate: 0.01968304660370243
+      max_depth: 4
+      min_child_weight: 23
+      subsample: 0.8482603786445442
+      colsample_bytree: 0.6127016595716311
+      reg_alpha: 0.013895490830421453
+      reg_lambda: 0.008111308307896872
+      tree_method: hist
+      device: cuda
+      random_state: 123
+      verbosity: 0
+      early_stopping_rounds: 50
+
+  - name: CB
+    fe: A_num2cat
+    n_splits: 5
+
+  - name: HGB
+    fe: A_num2cat
+    n_splits: 5
+
+  - name: RealMLP
+    fe: A_num2cat
+    n_splits: 7
+    legacy_oof: _realmlp
+
+blend:
+  method: individual_grid
+  models: [RealMLP, XGB, CB, HGB]
+  grid_step: 1

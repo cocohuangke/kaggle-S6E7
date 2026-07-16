@@ -1,0 +1,32 @@
+# test_sleep_interact.yaml — sleep × stress_pal, stress_level, physical_activity_level
+# Based on A_num2cat 17d + sleep_cat + 3 sleep interactions = 21d
+name: test_sleep_interact
+
+fe:
+  ASIP_median:
+    num2cat: true
+    stress_pal: true
+    sleep_cat: true
+    sleep_interact_with: [stress_pal, stress_level, physical_activity_level]
+    num_fill: median
+    te: false
+
+models:
+  - name: XGB
+    fe: ASIP_median
+    n_splits: 5
+
+  - name: CB
+    fe: ASIP_median
+    n_splits: 5
+
+  - name: HGB
+    fe: ASIP_median
+    n_splits: 5
+
+blend:
+  components:
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 1.0

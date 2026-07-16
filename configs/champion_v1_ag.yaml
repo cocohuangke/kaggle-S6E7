@@ -1,0 +1,67 @@
+# champion_v1_ag.yaml - Champion + AutoGluon blend
+#
+# Tests if AutoGluon adds diversity to our champion (LB=0.95083)
+# AutoGluon provides RF/XT/KNN/EBM/NN - architecturally different from our GBDT
+#
+# Usage:
+#   python run_v2.py configs/champion_v1_ag.yaml
+#
+# AutoGluon can be slow (1-4h). To run separately first:
+#   python run_autogluon.py --preset good_quality --time_limit 3600
+#   # Then this config will use cached OOF
+name: champion_v1_ag
+
+models:
+  # Champion components (legacy OOF)
+  - name: RM_ref
+    legacy_oof: _realmlp_ref
+    n_splits: 7
+
+  - name: XGB
+    legacy_oof: _fe_A_num2cat_numte_XGB
+    n_splits: 5
+
+  - name: CB
+    legacy_oof: _fe_A_num2cat_numte_CB
+    n_splits: 5
+
+  - name: HGB
+    legacy_oof: _fe_A_num2cat_numte_HGB
+    n_splits: 5
+
+  - name: RM_old
+    legacy_oof: _realmlp
+    n_splits: 7
+
+  # AutoGluon (NEW - provides architectural diversity)
+  - name: AutoGluon
+    autogluon:
+      preset: good_quality
+      time_limit: 3600
+      save_prefix: _autogluon_good
+    n_splits: 5  # not used by AutoGluon, for metadata only
+
+blend:
+  # First, compute champion's 4-way inner blend (as before)
+  components:
+    - name: RM_ref
+      models: [RM_ref]
+      inner: single
+
+    - name: GB_4way
+      models: [XGB, CB, HGB, RM_old]
+      inner: weighted
+      weights:
+        XGB: 0.02
+        CB: 0.06
+        HGB: 0.42
+        RM_old: 0.50
+
+    - name: AG
+      models: [AutoGluon]
+      inner: single
+
+  # Grid search over [RM_ref, GB_4way, AG] to find optimal weights
+  # Will test if AutoGluon gets any weight at all
+  grid_search: true
+  grid_step: 2

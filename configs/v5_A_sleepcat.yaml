@@ -1,0 +1,43 @@
+# v5_A_sleepcat.yaml — A_num2cat 17d + sleep_cat = 18d
+# Baseline: A_num2cat 17d, GB_A=0.95060, blend=0.95060
+
+name: v5_A_sleepcat
+
+fe:
+  A_num2cat_sleepcat:
+    num2cat: true
+    stress_pal: true
+    sleep_cat: true
+    stress_bin: false
+    key_rule3: false
+    num_fill: median
+    te: false
+
+models:
+  - name: XGB
+    fe: A_num2cat_sleepcat
+    n_splits: 5
+
+  - name: CB
+    fe: A_num2cat_sleepcat
+    n_splits: 5
+
+  - name: HGB
+    fe: A_num2cat_sleepcat
+    n_splits: 5
+
+  - name: RealMLP
+    fe: A_num2cat_sleepcat
+    n_splits: 7
+    legacy_oof: _realmlp
+
+blend:
+  components:
+    - name: RM
+      models: [RealMLP]
+      weight: 0.55
+
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 0.45

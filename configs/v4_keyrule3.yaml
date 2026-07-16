@@ -1,0 +1,44 @@
+# v4_keyrule3.yaml — Test key_rule3 (stress×pal×sleep_cat) on top of sleep_cat
+# 13d base + 1 sleep_cat + 1 key_rule3 = 15d
+# Baseline: sleepcat_only 14d, GB_A=0.94975, blend=0.95061
+
+name: v4_keyrule3
+
+fe:
+  sleepcat_keyrule3:
+    num2cat: false
+    stress_pal: false
+    sleep_cat: true
+    stress_bin: false
+    key_rule3: true
+    num_fill: median
+    te: false
+
+models:
+  - name: XGB
+    fe: sleepcat_keyrule3
+    n_splits: 5
+
+  - name: CB
+    fe: sleepcat_keyrule3
+    n_splits: 5
+
+  - name: HGB
+    fe: sleepcat_keyrule3
+    n_splits: 5
+
+  - name: RealMLP
+    fe: sleepcat_keyrule3
+    n_splits: 7
+    legacy_oof: _realmlp
+
+blend:
+  components:
+    - name: RM
+      models: [RealMLP]
+      weight: 0.55
+
+    - name: GB_A
+      models: [XGB, CB, HGB]
+      inner: equal
+      weight: 0.45
