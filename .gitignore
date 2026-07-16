@@ -20,6 +20,9 @@ autogluon_output/
 output/
 *.log
 
+# Archive (legacy, not needed)
+archive_v1/
+
 # Notebooks (large)
 notebook/
 
