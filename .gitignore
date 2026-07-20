@@ -13,6 +13,7 @@ catboost_info/
 
 # AutoGluon output
 autogluon_output/
+AutogluonModels/
 
 # Output
 output/
